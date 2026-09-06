@@ -513,7 +513,7 @@ Error RACFGBuilder::on_invoke(InvokeNode* invoke_node, RAInstBuilder& ib) noexce
   }
 
   // Setup clobbered registers.
-  ib._clobbered[0] = axl::trailing_bits_run<RegMask>(_pass._phys_reg_count.get(RegGroup(0))) & ~fd.preserved_regs(RegGroup(0));
+  ib._clobbered[0] = (axl::trailing_bits_run<RegMask>(_pass._phys_reg_count.get(RegGroup(0))) & ~fd.preserved_regs(RegGroup(0))) | axl::bit_mask<RegMask>(Gp::kIdLr);
   ib._clobbered[1] = axl::trailing_bits_run<RegMask>(_pass._phys_reg_count.get(RegGroup(1))) & ~fd.preserved_regs(RegGroup(1));
   ib._clobbered[2] = axl::trailing_bits_run<RegMask>(_pass._phys_reg_count.get(RegGroup(2))) & ~fd.preserved_regs(RegGroup(2));
   ib._clobbered[3] = axl::trailing_bits_run<RegMask>(_pass._phys_reg_count.get(RegGroup(3))) & ~fd.preserved_regs(RegGroup(3));

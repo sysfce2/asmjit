@@ -171,12 +171,11 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
   // Make frame pointer dirty if the function uses it.
   if (has_fp) {
     _dirty_regs[RegGroup::kGp] |= axl::bit_mask<RegMask>(kFp);
+  }
 
-    // Currently required by ARM, if this works differently across architectures we would have to generalize most
-    // likely in CallConv.
-    if (kLr != Reg::kIdBad) {
-      _dirty_regs[RegGroup::kGp] |= axl::bit_mask<RegMask>(kLr);
-    }
+  // Currently required by ARM, if this works differently across platforms we would have to generalize in CallConv.
+  if ((has_fp || has_func_calls()) && kLr != Reg::kIdBad) {
+    _dirty_regs[RegGroup::kGp] |= axl::bit_mask<RegMask>(kLr);
   }
 
   // These two are identical if the function doesn't align its stack dynamically.

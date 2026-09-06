@@ -293,15 +293,16 @@ int TestApp::run() {
 #ifndef ASMJIT_NO_JIT
       if (runnable) {
         void* func = nullptr;
-        if (err == Error::kOk)
+        if (err == Error::kOk) {
           err = runtime.add(&func, &code);
+        }
 
         if (err == Error::kOk && _dump_hex) {
           String sb;
           sb.append_hex((void*)func, code.code_size());
           printf("  [Hex Dump]:\n");
           for (size_t i = 0; i < sb.size(); i += 76) {
-            printf("    %.60s\n", sb.data() + i);
+            printf("    %.76s\n", sb.data() + i);
           }
         }
 
@@ -313,12 +314,14 @@ int TestApp::run() {
           StringTmp<128> expect;
 
           if (test->run(func, result, expect)) {
-            if (!_verbose)
+            if (!_verbose) {
               printf("%s[RUN OK]\n", status_separator);
+            }
           }
           else {
-            if (!_verbose)
+            if (!_verbose) {
               printf("%s[RUN FAILED]\n", status_separator);
+            }
 
             print_string_logger_content();
             printf("  [Output]\n");
@@ -327,14 +330,16 @@ int TestApp::run() {
             _num_failed++;
           }
 
-          if (_dump_asm)
+          if (_dump_asm) {
             printf("\n");
+          }
 
           runtime.release(func);
         }
         else {
-          if (!_verbose)
+          if (!_verbose) {
             printf("%s[COMPILE FAILED]\n", status_separator);
+          }
 
           print_string_logger_content();
           printf("  [Status]\n");

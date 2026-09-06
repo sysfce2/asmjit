@@ -555,6 +555,73 @@ public:
   }
 };
 
+// a64::Compiler - A64Test_Invoke4
+// ===============================
+
+class A64Test_Invoke4 : public A64TestCase {
+public:
+  A64Test_Invoke4()
+    : A64TestCase("Invoke4") {}
+
+  static void add(TestApp& app) {
+    app.add(new A64Test_Invoke4());
+  }
+
+  void compile(a64::Compiler& cc) override {
+    static constexpr uint32_t kRegCount = 2;
+
+    cc.add_func(FuncSignature::build<uint32_t>());
+
+    a64::Gp fn = cc.new_gp_ptr("fn");
+    a64::Gp out = cc.new_gp32("out");
+    a64::Gp gpr[kRegCount];
+
+    Label L_Done = cc.new_label();
+    Label L_Failed = cc.new_label();
+
+    cc.mov(fn, (uint64_t)called_fn);
+
+    for (uint32_t i = 0; i < kRegCount; i++) {
+      gpr[i] = cc.new_gp32("reg%u", i);
+      cc.mov(gpr[i], i + 1000u);
+    }
+
+    cc.virt_reg_by_reg(gpr[kRegCount - 1])->set_home_id_hint(a64::Gp::kIdLr);
+
+    InvokeNode* invoke_node;
+    cc.invoke(Out(invoke_node), fn, FuncSignature::build<uint32_t>());
+    invoke_node->set_ret(0, out);
+
+    for (uint32_t i = 0; i < kRegCount; i++) {
+      cc.cmp(gpr[i], i + 1000u);
+      cc.b_ne(L_Failed);
+    }
+
+    cc.b(L_Done);
+
+    cc.bind(L_Failed);
+    cc.mov(out, 0xFFFFFFFFu);
+
+    cc.bind(L_Done);
+    cc.ret(out);
+    cc.end_func();
+  }
+
+  bool run(void* _func, String& result, String& expect) override {
+    using Func = uint32_t (*)(void);
+    Func func = axl::ptr_as_func<Func>(_func);
+
+    result.assign_format("ret={%u}", func());
+    expect.assign_format("ret={%u}", called_fn());
+
+    return result == expect;
+  }
+
+  static uint32_t called_fn() {
+    return 42;
+  }
+};
+
 // a64::Compiler - A64Test_JumpTable
 // =================================
 
@@ -682,6 +749,7 @@ void compiler_add_a64_tests(TestApp& app) {
   app.add_t<A64Test_Invoke1>();
   app.add_t<A64Test_Invoke2>();
   app.add_t<A64Test_Invoke3>();
+  app.add_t<A64Test_Invoke4>();
   app.add_t<A64Test_JumpTable>();
 }
 
